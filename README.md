@@ -1,0 +1,1 @@
+Angular 2 test project written against [open-ods](http://www.openods.co.uk/) API
