@@ -7,10 +7,7 @@ import { OrgDetailsComponent } from './org-details/org-details.component';
 
 @Component ({
     selector: 'open-ods',
-    template: `
-        <h1>Hello World</h1>
-        <router-outlet></router-outlet>
-    `,
+    templateUrl: "./app/app.template.html",
     directives: [SearchFieldComponent, RouterOutlet]  
 })
 @RouteConfig([

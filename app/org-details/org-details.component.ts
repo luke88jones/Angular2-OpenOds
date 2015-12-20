@@ -1,5 +1,5 @@
 import {Component} from 'angular2/core';
-import { SearchService } from '../search.service';
+import { SearchService } from '../services/search.service';
 import {RouteParams, RouterLink} from 'angular2/router';
 
 @Component({

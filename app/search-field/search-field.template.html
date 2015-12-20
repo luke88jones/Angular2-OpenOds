@@ -1,0 +1,27 @@
+<div class="container">
+    <div class="row">
+        <div class="col-md-6">
+            <form name="orgSearch">
+                <input type="text" class="form-control" placeholder="Organisation name" [ngFormControl]="searchString" />
+            </form>            
+        </div>
+    </div>
+    <div class="col-md-6" *ngIf="searchResults">
+        <loading [loading]="loading"></loading>
+        <ul>
+            <li class="link" *ngFor="#org of searchResults" [routerLink]="['OrgDetails', { odsCode: org.odsCode}]">
+                {{org.name}}
+            </li>
+        </ul>
+        <div>
+            <button class="btn pull-left" *ngIf="offset >= limit" (click)="previousPage()">
+                <span class="gylphicon glyphicon-previous"></span>
+                Previous
+            </button>
+            <button (click)="nextPage()" class="btn pull-right" *ngIf="canPageForward">
+                Next
+                <span class="glyphicon glyphicon-next"></span>
+            </button>
+        </div>
+    </div>
+</div>

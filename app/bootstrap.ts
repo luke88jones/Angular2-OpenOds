@@ -4,6 +4,6 @@ import {ROUTER_PROVIDERS} from 'angular2/router';
 
 
 import {AppComponent} from './app.component';
-import {SearchService} from './search.service';
+import {SearchService} from './services/search.service';
 
 bootstrap(AppComponent, [HTTP_PROVIDERS, ROUTER_PROVIDERS, SearchService]);
