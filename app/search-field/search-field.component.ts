@@ -6,6 +6,7 @@ import 'rxjs/add/operator/debounceTime';
 import 'rxjs/add/operator/switchMap';
 import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/do';
+import 'rxjs/add/operator/catch';
 
 import {SearchService} from '../services/search.service'
 import { LoadingComponent } from "../loading/loading.component";
@@ -37,6 +38,11 @@ export class SearchFieldComponent {
                 that.loading = true;
             })
             .switchMap((val: string) => searchService.search(val, 0, this.limit))
+            .catch(function(err, source, caught) {
+                that.loading = false;
+                console.log(err);
+                return source;
+            })
             .subscribe(
                 (res:Response) => that.searchResultsHandler(res),
                 err => that.searchResultsErrorHandler(err)              
