@@ -10,6 +10,6 @@ import { NgIf } from "angular2/common";
 })
 
 export class LoadingComponent {
-     public loading: boolean = false;
+     public loading: boolean;
           
 }

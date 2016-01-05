@@ -4,10 +4,10 @@
             <form name="orgSearch">
                 <input type="text" class="form-control" placeholder="Organisation name" [ngFormControl]="searchString" />
             </form>            
+            <loading [loading]="loading"></loading>
         </div>
     </div>
     <div class="col-md-6" *ngIf="searchResults">
-        <loading [loading]="loading"></loading>
         <ul>
             <li class="link" *ngFor="#org of searchResults" [routerLink]="['OrgDetails', { odsCode: org.odsCode}]">
                 {{org.name}}

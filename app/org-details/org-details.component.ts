@@ -8,9 +8,12 @@ import {RouteParams, RouterLink} from 'angular2/router';
         <div>
             <button [routerLink]="['Search']">Back</button>
         </div>
-        <div>
-            <p>{{org | json}}
+        <div class="col-md-12">
+            <h2>{{org | json }}</h2>
         </div>
+        <div class="col-md-12">
+        
+        </div> 
     `,
     directives: [RouterLink]    
 })
@@ -23,6 +26,9 @@ export class OrgDetailsComponent {
     ) {
         var that = this;
         searchService.getOrg(routeParams.get("odsCode"))
-            .subscribe(res => that.org = res.json());
+            // .subscribe(res => that.org = res.json());
+            .subscribe(function(res) {
+                that.org = res.json();
+            });
     }
 }

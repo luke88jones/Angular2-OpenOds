@@ -1,0 +1,11 @@
+.jumbotron {
+    padding-top: 0;
+}
+
+.navbar {
+    border-radius: 0;
+}
+
+.navbar-right {
+    margin-right: 0;
+}
