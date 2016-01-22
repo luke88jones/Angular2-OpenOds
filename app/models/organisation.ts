@@ -1,3 +1,8 @@
+class RelLink {
+    href: string;
+    rel: string;
+}
+
 class Role {
     code: string;
     description: string;
@@ -7,6 +12,15 @@ class Role {
     legalEndDate: string;
     status: string;
     primaryRole: boolean;    
+}
+
+export class Successor {
+    links: RelLink[];
+    targetOdsCode: string;
+    targetprimaryrolecode: string;
+    type: string; 
+    uniqueId: number;
+    name: string;
 }
 
 export class Address {
@@ -28,4 +42,5 @@ export class Organisation {
     legalStartDate: string;
     legalEndDate: string;
     roles: Role[];    
+    successors: Successor[];
 }

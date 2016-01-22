@@ -1,8 +1,12 @@
 import { Component } from 'angular2/core';
 import { NgClass, NgFor } from 'angular2/common';
 import { SearchService } from '../services/search.service';
-import {RouteParams, RouterLink} from 'angular2/router';
-import { Organisation, Address } from "../models/organisation";
+import { RouteParams, RouterLink} from 'angular2/router';
+import { Organisation, Address, Successor } from "../models/organisation";
+import { Observable } from "rxjs/Observable";
+// import { Response } from 'angular2/http';
+
+import 'rxjs/add/operator/concat';
 
 // Placeholder for Google maps api
 declare var google: any;
@@ -32,7 +36,7 @@ declare var google: any;
                         <tbody>
                             <tr>
                                 <td>Last updated</td>
-                                <td>{{org.last_changed}}</td>
+                                <td>{{org.last_changed | date : "EEE dd-MMM-y"}}</td>
                             </tr>
                             <tr>
                                 <td>ODS code</td>
@@ -40,19 +44,19 @@ declare var google: any;
                             </tr>
                             <tr>
                                 <td>Operational start date</td>
-                                <td>{{org.operationalStartDate}}</td>
+                                <td>{{org.operationalStartDate | date : "EEE dd-MMM-y"}}</td>
                             </tr>
                             <tr>
                                 <td>Operational end date</td>
-                                <td>{{org.operationalEndDate}}</td>
+                                <td>{{org.operationalEndDate | date : "EEE dd-MMM-y"}}</td>
                             </tr>
                             <tr>
                                 <td>Legal start date</td>
-                                <td>{{org.legalStartDate}}</td>
+                                <td>{{org.legalStartDate | date : "EEE dd-MMM-y"}}</td>
                             </tr>
                             <tr>
                                 <td>Legal end date</td>
-                                <td>{{org.legalEndDate}}</td>
+                                <td>{{org.legalEndDate | date : "EEE dd-MMM-y"}}</td>
                             </tr>
                         </tbody>
                     </table>
@@ -60,8 +64,10 @@ declare var google: any;
             </div>
             <div class="col-md-12" style="margin-top: 20px">
                 <h3>Roles</h3>
-                <table *ngIf="org" class="table table-stripped">
+                <p *ngIf="org && org.roles.length === 0">No known roles</p>
+                <table *ngIf="org && org.roles.length > 0" class="table table-stripped">
                     <thead>
+                        <th></th>
                         <th>Code</th>
                         <th>Description</th>
                         <th>Operational start date</th>
@@ -72,16 +78,39 @@ declare var google: any;
                     </thead>
                     <tbody>
                         <tr *ngFor="#role of org.roles">
+                            <td>
+                                <i style="color: #337ab7;" *ngIf="role.primaryRole" class="glyphicon glyphicon-ok-circle" title="Primary role"></i>
+                            </td>
                             <td>{{role.code}}</td>
                             <td>{{role.description}}</td>
-                            <td>{{role.operationalStartDate}}</td>
-                            <td>{{role.operationalEndDate}}</td>
-                            <td>{{role.legalStartDate}}</td>
-                            <td>{{role.legalEndDate}}</td>
+                            <td>{{role.operationalStartDate | date : "EEE dd-MMM-y"}}</td>
+                            <td>{{role.operationalEndDate | date : "EEE dd-MMM-y"}}</td>
+                            <td>{{role.legalStartDate | date : "EEE dd-MMM-y"}}</td>
+                            <td>{{role.legalEndDate | date : "EEE dd-MMM-y"}}</td>
                             <td [ngClass]="{ 'text-danger': org.status === 'Inactive', 'text-success': org.status === 'Active' }">{{role.status}}</td>
                         </tr>
                     </tbody>
                 </table>
+            </div>                     
+            <div class="col-md-12" style="margin-top: 20px">
+                <h3>Successors</h3>
+                <div *ngIf="!resolvingSuccessors">
+                    <p *ngIf="org && org.successors.length === 0">No known successors</p>
+                    <table *ngIf="org && org.successors.length > 0" class="table table-stripped">
+                        <thead>
+                            <th>Ods Code</th>
+                            <th>Type</th>
+                            <th>Name</th>
+                        </thead>
+                        <tbody>
+                            <tr *ngFor="#successor of org.successors">
+                                <td>{{successor.targetOdsCode}}</td>
+                                <td>{{successor.type}}</td>
+                                <td>{{successor.targetName}}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>                     
         </div>
     `,
@@ -94,19 +123,47 @@ declare var google: any;
 export class OrgDetailsComponent {
     private org: Organisation;
     private addressString: string;
+    private resolvingSuccessors: boolean;
     
     constructor(
-        searchService: SearchService,
+        private searchService: SearchService,
         routeParams: RouteParams
     ) {
         var that = this;
 
         searchService.getOrg(routeParams.get("odsCode"))
             .subscribe(function(res) {
-                that.org = res.json();
+                let orgData: Organisation = res.json();
+                orgData = that.stringsToDates(orgData);
+                
+                orgData.roles.forEach(function(role) {
+                    role = that.stringsToDates(role);
+                });
+                
+                that.org = orgData;
                 that.addressString = that.mapAddressSingleLine(that.org.addresses[0]);
                 that.loadMap();
             });
+    }
+    
+    private stringsToDates(value) {
+        if (value.hasOwnProperty("last_changed")) {
+            value["last_changed"] = new Date(value["last_changed"]);
+        }
+        if (value.hasOwnProperty("operationalStartDate")) {
+            value["operationalStartDate"] = new Date(value["operationalStartDate"]);
+        }
+        if (value.hasOwnProperty("operationalEndDate")) {
+            value["operationalEndDate"] = new Date(value["operationalEndDate"]);
+        }
+        if (value.hasOwnProperty("legalStartDate")) {
+            value["legalStartDate"] = new Date(value["legalStartDate"]);
+        }
+        if (value.hasOwnProperty("legalEndDate")) {
+            value["legalEndDate"] = new Date(value["legalEndDate"]);
+        }
+        
+        return value;
     }
     
     private mapAddressSingleLine(address: Address) {
