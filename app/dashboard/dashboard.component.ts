@@ -3,8 +3,8 @@ import {RouterLink} from 'angular2/router';
 
 @Component({
     template: `
-        <div>
-            <ul>
+        <div class="container">
+            <ul class="link">
                 <li [routerLink]="['Search']">Search</li>
             </ul>
         </div>

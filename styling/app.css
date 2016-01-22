@@ -1,3 +1,7 @@
 .link {
     cursor: pointer;
 }
+
+.info-window ul {
+    list-style-type: none;
+}
