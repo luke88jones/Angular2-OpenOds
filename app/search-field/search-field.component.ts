@@ -1,43 +1,45 @@
-import {Component} from "angular2/core";
+import {Component, OnInit} from "angular2/core";
 import {NgFor, NgIf, FORM_DIRECTIVES, Control} from 'angular2/common';
 import {Response} from 'angular2/http';
 import { RouterLink } from 'angular2/router';
-import 'rxjs/add/operator/debounceTime';
-import 'rxjs/add/operator/switchMap';
-import 'rxjs/add/operator/map';
-import 'rxjs/add/operator/do';
-import 'rxjs/add/operator/catch';
 
-import {SearchService} from '../services/search.service'
+import {SearchService} from '../services/search.service';
+import { RoleTypesService } from '../services/role-types.service';
 import { LoadingComponent } from "../loading/loading.component";
 
 @Component({
     selector: "search-field",
     templateUrl: "./app/search-field/search-field.template.html",
-    directives: [NgFor, NgIf, RouterLink, FORM_DIRECTIVES, LoadingComponent]
+    directives: [NgFor, NgIf, RouterLink, FORM_DIRECTIVES, LoadingComponent],
+    styleUrls: ["./app/search-field/search-field.style.css"]
 })
 
-export class SearchFieldComponent {
+export class SearchFieldComponent implements OnInit {
     private searchString: Control;
-    private searchResults: any;
     private offset: number = 0;
     private limit: number = 10;
-    private canPageForward: boolean;
     private viewedTotal: number = 0;
-    private loading: boolean = false;
+    canPageForward: boolean;
+    loading: boolean = false;
+    searchResults: any;
+    roleType: string;
+    roleTypes: any[];
 
     constructor(
-        private searchService: SearchService
+        private searchService: SearchService,
+        private roleTypesService: RoleTypesService
     ) {
         var that = this;
-        this.searchString = new Control('');
+        this.searchString = new Control('');    
+        this.roleTypes = [];    
 
         this.searchString.valueChanges
             .debounceTime(300)
             .do(function () {
                 that.loading = true;
+                console.log(that.roleType);
             })
-            .switchMap((val: string) => searchService.search(val, 0, this.limit))
+            .switchMap((val: string) => searchService.search(val, 0, this.limit, this.roleType))
             .catch(function(err, source, caught) {
                 that.loading = false;
                 console.log(err);
@@ -47,6 +49,18 @@ export class SearchFieldComponent {
                 (res:Response) => that.searchResultsHandler(res),
                 err => that.searchResultsErrorHandler(err)              
             );
+    }
+    
+    ngOnInit() {
+        this.getRoleTypes();
+    }
+    
+    private getRoleTypes() {
+        var that = this;
+        this.roleTypesService.getRoles()
+            .subscribe(function(roles) {
+                that.roleTypes = roles;
+            });
     }
 
     private searchResultsHandler(res: Response) {
@@ -61,10 +75,17 @@ export class SearchFieldComponent {
         this.loading = false;
         console.log(err);
     }
+    
+    roleUpdated(value) {
+        this.roleType = value;
+        if (this.searchString.value){
+            this.search();           
+        }
+    }
 
     search() {
         var that = this;
-        that.searchService.search(that.searchString.value, that.offset, that.limit)
+        that.searchService.search(that.searchString.value, that.offset, that.limit, that.roleType)
             .do(function() {
                 that.loading = true;
             })

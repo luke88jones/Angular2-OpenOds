@@ -14,6 +14,20 @@ class Role {
     primaryRole: boolean;    
 }
 
+class Relationships {
+    code: string;
+    description: string;    
+    operationalStartDate: string;
+    operationalEndDate: string;
+    legalStartDate: string;
+    legalEndDate: string;
+    status: string;
+    relatedOdsCode: string;
+    relatedOrganisationName: string;
+    uniqueId: number;   
+    links: RelLink[]; 
+}
+
 export class Successor {
     links: RelLink[];
     targetOdsCode: string;
@@ -43,4 +57,5 @@ export class Organisation {
     legalEndDate: string;
     roles: Role[];    
     successors: Successor[];
+    relationships: Relationships[];    
 }

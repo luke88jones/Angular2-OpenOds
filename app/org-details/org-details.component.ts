@@ -1,12 +1,9 @@
-import { Component } from 'angular2/core';
+import { Component, OnInit } from 'angular2/core';
 import { NgClass, NgFor } from 'angular2/common';
 import { SearchService } from '../services/search.service';
 import { RouteParams, RouterLink} from 'angular2/router';
 import { Organisation, Address, Successor } from "../models/organisation";
 import { Observable } from "rxjs/Observable";
-// import { Response } from 'angular2/http';
-
-import 'rxjs/add/operator/concat';
 
 // Placeholder for Google maps api
 declare var google: any;
@@ -87,7 +84,7 @@ declare var google: any;
                             <td>{{role.operationalEndDate | date : "EEE dd-MMM-y"}}</td>
                             <td>{{role.legalStartDate | date : "EEE dd-MMM-y"}}</td>
                             <td>{{role.legalEndDate | date : "EEE dd-MMM-y"}}</td>
-                            <td [ngClass]="{ 'text-danger': org.status === 'Inactive', 'text-success': org.status === 'Active' }">{{role.status}}</td>
+                            <td [ngClass]="{ 'text-danger': role.status === 'Inactive', 'text-success': role.status === 'Active' }">{{role.status}}</td>
                         </tr>
                     </tbody>
                 </table>
@@ -103,7 +100,7 @@ declare var google: any;
                             <th>Name</th>
                         </thead>
                         <tbody>
-                            <tr *ngFor="#successor of org.successors">
+                            <tr *ngFor="#successor of org.successors" class="link" [routerLink]="['OrgDetails', { odsCode: successor.targetOdsCode}]" >
                                 <td>{{successor.targetOdsCode}}</td>
                                 <td>{{successor.type}}</td>
                                 <td>{{successor.targetName}}</td>
@@ -111,7 +108,35 @@ declare var google: any;
                         </tbody>
                     </table>
                 </div>
-            </div>                     
+            </div>
+            <div class="col-md-12" style="margin-top: 20px">
+                <h3>Relationships</h3>
+                <p *ngIf="org && org.relationships.length === 0">No known roles</p>
+                <table *ngIf="org && org.relationships.length > 0" class="table table-stripped">
+                    <thead>
+                        <th>ODS Code</th>
+                        <th>Name</th>
+                        <th>Description</th>
+                        <th>Operational start date</th>
+                        <th>Operational end date</th>
+                        <th>Legal start date</th>
+                        <th>Legal end date</th>
+                        <th>Status</th>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="#relationship of org.relationships" class="link" [routerLink]="['OrgDetails', { odsCode: relationship.relatedOdsCode}]" >                            
+                            <td>{{relationship.relatedOdsCode}}</td>
+                            <td>{{relationship.relatedOrganisationName}}</td>
+                            <td>{{relationship.description}}</td>
+                            <td>{{relationship.operationalStartDate | date : "EEE dd-MMM-y"}}</td>
+                            <td>{{relationship.operationalEndDate | date : "EEE dd-MMM-y"}}</td>
+                            <td>{{relationship.legalStartDate | date : "EEE dd-MMM-y"}}</td>
+                            <td>{{relationship.legalEndDate | date : "EEE dd-MMM-y"}}</td>
+                            <td [ngClass]="{ 'text-danger': relationship.status === 'Inactive', 'text-success': relationship.status === 'Active' }">{{relationship.status}}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>                      
         </div>
     `,
     directives: [RouterLink, NgClass, NgFor],
@@ -120,30 +145,37 @@ declare var google: any;
 
 
 
-export class OrgDetailsComponent {
+export class OrgDetailsComponent implements OnInit {
     private org: Organisation;
     private addressString: string;
     private resolvingSuccessors: boolean;
     
     constructor(
         private searchService: SearchService,
-        routeParams: RouteParams
-    ) {
+        private routeParams: RouteParams
+    ) {}
+    
+    ngOnInit() {
         var that = this;
 
-        searchService.getOrg(routeParams.get("odsCode"))
-            .subscribe(function(res) {
-                let orgData: Organisation = res.json();
+        that.searchService.getOrg(that.routeParams.get("odsCode"))
+            .subscribe(function(response) {
+                let orgData: Organisation = response;
                 orgData = that.stringsToDates(orgData);
                 
                 orgData.roles.forEach(function(role) {
                     role = that.stringsToDates(role);
                 });
                 
+                orgData.relationships.forEach(function(relationship) {
+                    relationship = that.stringsToDates(relationship);
+                });
+                
                 that.org = orgData;
                 that.addressString = that.mapAddressSingleLine(that.org.addresses[0]);
                 that.loadMap();
-            });
+            },
+            err => console.log(err));
     }
     
     private stringsToDates(value) {

@@ -1,16 +1,27 @@
 <div class="container">
     <div class="row">
-        <div class="col-md-6">
+        <div class="col-md-10">
             <form name="orgSearch">
-                <input type="text" class="form-control" placeholder="Organisation name" [ngFormControl]="searchString" />
+                <div class="input-group org-search">
+                    <input type="text" class="form-control" placeholder="Organisation name" [ngFormControl]="searchString" />
+                    <select class="form-control" [title]="selectedRole.options[selectedRole.selectedIndex]?.innerHTML" #selectedRole (change)="roleUpdated(selectedRole.options[selectedRole.selectedIndex]?.value)">
+                        <option value="" selected>Filter by Role Type</option>
+                        <option [value]="role.code" *ngFor="#role of roleTypes" [title]="role.name">{{role.name}}</option>
+                    </select>                    
+                </div>
             </form>            
             <loading [loading]="loading"></loading>
         </div>
     </div>
-    <div class="col-md-6" *ngIf="searchResults">
+    <div class="col-md-10 search-results" *ngIf="searchResults">
         <ul>
-            <li class="link" *ngFor="#org of searchResults" [routerLink]="['OrgDetails', { odsCode: org.odsCode}]">
-                {{org.name}}
+            <li class="link" *ngFor="#org of searchResults; #idx = index" [routerLink]="['OrgDetails', { odsCode: org.odsCode}]">
+                <span class="numbering">
+                    {{offset + idx + 1}}.
+                </span> 
+                <span>
+                    {{org.name}} ({{ org.odsCode}})
+                </span>
             </li>
         </ul>
         <div>
